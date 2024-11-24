@@ -1,0 +1,140 @@
+# Boot into bios, and select USB to boot
+
+# Network setup
+iwctl				open interface connect wifi
+device list			list all wlan devices
+station wlan0 scan     		scan network
+station wlan0 get-networks	display all network
+station wlan0 connect <network-name>
+ctrl+d exit
+
+# Time setup
+timedatectl			update system time
+timedatectl set-ntp true	synchronize system time with network
+
+# Disk partition setup
+fdisk -l			list disk partitions
+cfdisk <disk name>		TUI for disk partition
+	EFI - EFI System
+	Linux space - Linux filesystem
+	swap space - Linux swap
+fdisk -l 			to verify change
+
+# Format disks
+mkfs.fat -F32 <path to EFI>
+mkfs.ext4 <path to Linux space>
+mkswap <path to swap space>
+
+# Disk mounting
+lsblk
+mount <path to Linux space> /mnt
+mkdir /mnt/boot
+mount <path to EFI>  /mnt/boot
+swapon <path to swap space>
+lsblk
+
+# Install essential stuff
+pacstrap -i /mnt base base-devel linux linux-firmware amd-ucode git sudo neofetch htop vim bluez bluez-utils networkmanager
+
+# Auto mount configuration file	
+genfstab -U /mnt >> /mnt/etc/fstab
+
+# Enter arch linux
+arch-chroot /mnt
+
+neofetch
+htop
+
+# Set root password
+passwd
+
+# Add user workerbbx
+useradd -m -g users -G wheel,storage,power,video,audio -s /bin/bash <username>
+passwd <username>
+
+# Set user privilege
+visudo 
+
+# Sync packages from pacman
+sudo pacman -Syu
+
+# Set timezone, region, and link information with local time
+ln -sf /usr/share/zoneinfo/Canada/Eastern /etc/localtime
+
+# Sync current time
+hwclock --systohc
+
+# Generating locale, to set system language
+vim /etc/locale.gen
+# uncomment en_US.UTF-8 and zh_CN.UTF-8
+# generate
+locale-gen
+
+# Set english as default system language
+vim /etc/locale.conf
+# LANG=en_US.UTF-8
+
+# Set hostname
+vim /etc/hostname
+# ebarchlinux
+
+# Set static table lookup for hostnames
+vim /etc/hosts
+# 127.0.0.1		localhost
+# ::1			localhost
+# 127.0.1.1		ebarchlinux.localdomain		ebarchlinux
+
+# Install grub boot loader, help to boot arch linux
+pacman -S grub efibootmgr dosfstools mtools	
+
+lsblk
+
+# Install grub into EFI partition named /boot
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+
+# Generate grub configuration file
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# Enable bluetooth service
+systemctl enable bluetooth
+
+# Enable NetworkManager service
+systemctl enable NetworkManager
+
+# Exit from chroot and unmount all partitions
+exit
+umount -lR /mnt
+
+# Shutdown and eject usb
+shutdown now
+
+# Log back in
+# Connect to network using nmcli (or nmtui)
+nmcli dev status						status of network interfaces
+nmcli radio wifi on						turn on wifi radio
+nmcli dev wifi list						view a list of wifi network
+sudo nmcli dev wifi connect <wifiname> password "password"	connect
+
+# Update pacman database
+sudo pacman -Sy
+
+# Install Desktop environment KDE Plasma and applications
+sudo pacman -S xorg sddm plasma-meta kde-applications dolphin konsole kwrite libreoffice-fresh firefox cargo clang cmake make gcc noto-fonts noto-fonts-emoji ttf-dejavu ttf-font-awesome
+
+# Enable and start 
+sudo systemctl enable sddm
+sudo systemctl start sddm
+
+# Fix KDE Discover backend
+sudo pacman -Sy flatpak
+
+# Install NVIDIA driver
+lspci | grep -E "NVIDIA"
+sudo pacman -Sy nvidia
+
+# Add windows Boot entry to GRUB boot menu
+sudo pacman -Sy os-prober
+# Edit grub configuration file, to change default timeout, and uncomment last line that sets GRUB_DISABLE_OS_PROBER to false
+sudo vim /etc/default/grub
+# Update grub configuration
+sudo grub-mkconfig -o /boot/grub/grub.cfg
