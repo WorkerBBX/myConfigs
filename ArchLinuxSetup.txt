@@ -148,3 +148,16 @@ makepkg -si
 
 yay -Sy asusctl supergfxctl rog-control-center
 
+
+# SSH setup
+sudo pacman -Sy openssh
+
+# Generating new SSH key
+ssh-keygen -t ed25519 -C "hezhangshuo@gmail.com"
+eval "$(ssh-agent -s)"
+
+# Add SSH key to ssh-agent
+ssh-add ~/.ssh/id_ed25519
+
+# Copy and add to Github
+cat ~/.ssh/id_ed25519.pub
