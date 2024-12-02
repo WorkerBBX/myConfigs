@@ -34,7 +34,7 @@ swapon <path to swap space>
 lsblk
 
 # Install essential stuff
-pacstrap -i /mnt base base-devel linux linux-firmware amd-ucode git sudo neofetch htop vim bluez bluez-utils networkmanager
+pacstrap -i /mnt base base-devel linux linux-firmware amd-ucode git sudo neofetch htop vim tmux bluez bluez-utils networkmanager
 
 # Auto mount configuration file	
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -161,3 +161,11 @@ ssh-add ~/.ssh/id_ed25519
 
 # Copy and add to Github
 cat ~/.ssh/id_ed25519.pub
+
+
+# Install Nvidia driver and cuda
+sudo pacman -Sy nvidia opencl-nvidia
+sudo pacman -Sy nvidia cuda
+
+# Install AMD rocm
+sudo pacman -Sy rocm-hip-sdk rocm-hip-runtime hip-runtime-amd hip-runtime-nvidia
