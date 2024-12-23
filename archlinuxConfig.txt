@@ -119,7 +119,7 @@ sudo nmcli dev wifi connect <wifiname> password "password"	connect
 sudo pacman -Sy
 
 # Install Desktop environment KDE Plasma and applications
-sudo pacman -S xorg sddm plasma-meta kde-applications dolphin konsole kwrite libreoffice-fresh firefox cargo clang cmake make gcc noto-fonts noto-fonts-emoji ttf-dejavu ttf-font-awesome noto-fonts-cjk
+sudo pacman -S xorg sddm plasma-meta kde-applications dolphin konsole kwrite libreoffice-fresh firefox cargo clang cmake make gcc unzip nvim fzf noto-fonts noto-fonts-emoji ttf-dejavu ttf-font-awesome noto-fonts-cjk nerd-fonts
 
 # Enable and start 
 sudo systemctl enable sddm
