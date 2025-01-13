@@ -174,3 +174,17 @@ sudo pacman -Sy rocm-hip-sdk rocm-hip-runtime hip-runtime-amd hip-runtime-nvidia
 
 # Install GLFW and VulkanSDK
 sudo pacman -Sy glfw vulkan-devel
+
+
+
+# Configure force disable DGPU on Integrated mode after resume from lid close
+# Copy service to systemd location
+mv dgpu_force_disable_on_integrated.service /etc/systemd/system/dgpu_force_disable_on_integrated.service
+
+# Copy script triggered by service to some location
+mv dgpu_force_disable_on_integrated.sh /usr/local/bin/dgpu_force_disable_on_integrated.sh
+
+# Enable and start service
+sudo systemctl enable --now  dgpu_force_disable_on_integrated.service
+sudo systemctl start --now  dgpu_force_disable_on_integrated.service
+
