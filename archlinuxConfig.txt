@@ -1,31 +1,71 @@
-# Boot into bios, and select USB to boot
+###############################################################################
+## Boot into bios, and select USB to boot
+###############################################################################
 
-# Network setup
-iwctl				open interface connect wifi
-device list			list all wlan devices
-station wlan0 scan     		scan network
-station wlan0 get-networks	display all network
+
+###############################################################################
+## Network setup
+###############################################################################
+
+# Open interface connect wifi
+iwctl
+
+# List all wlan devices
+device list
+
+# Scan network
+station wlan0 scan
+
+# Display all network
+station wlan0 get-networks
+
+# Connect to network
 station wlan0 connect <network-name>
-ctrl+d exit
 
-# Time setup
-timedatectl			update system time
-timedatectl set-ntp true	synchronize system time with network
+# CTRL + D to exit
 
-# Disk partition setup
-fdisk -l			list disk partitions
-cfdisk <disk name>		TUI for disk partition
-	EFI - EFI System
-	Linux space - Linux filesystem
-	swap space - Linux swap
-fdisk -l 			to verify change
 
-# Format disks
+###############################################################################
+## Time setup
+###############################################################################
+
+# Update system time
+timedatectl
+
+# Synchronize system time with network
+timedatectl set-ntp true
+
+
+###############################################################################
+## Disk partition setup
+###############################################################################
+
+# List disk partitions
+fdisk -l
+
+# TUI for disk partition
+#	EFI - EFI System
+#	Linux space - Linux filesystem
+#	swap space - Linux swap
+cfdisk <disk name>
+
+# To verify change
+fdisk -l
+
+
+###############################################################################
+## Format disks
+###############################################################################
+
 mkfs.fat -F32 <path to EFI>
 mkfs.ext4 <path to Linux space>
 mkswap <path to swap space>
 
-# Disk mounting
+
+###############################################################################
+## Disk mounting
+###############################################################################
+
 lsblk
 mount <path to Linux space> /mnt
 mkdir /mnt/boot
@@ -33,30 +73,44 @@ mount <path to EFI>  /mnt/boot
 swapon <path to swap space>
 lsblk
 
-# Install essential stuff
+
+###############################################################################
+## Install essential stuff
+###############################################################################
+
 pacstrap -i /mnt base base-devel linux linux-firmware amd-ucode git sudo neofetch htop vim tmux bluez bluez-utils networkmanager
 
-# Auto mount configuration file	
+
+###############################################################################
+## Auto mount configuration file	
+###############################################################################
+
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# Enter arch linux
+
+###############################################################################
+## Enter arch linux
+###############################################################################
+
 arch-chroot /mnt
 
-neofetch
-htop
+# Sync packages from pacman
+sudo pacman -Syu
 
-# Set root password
+
+###############################################################################
+## User setup
+###############################################################################
+
+## Set root password
 passwd
 
-# Add user workerbbx
+# Add new username with group (i.e. workerbbx)
 useradd -m -g users -G wheel,storage,power,video,audio -s /bin/bash <username>
 passwd <username>
 
 # Set user privilege
 visudo 
-
-# Sync packages from pacman
-sudo pacman -Syu
 
 # Set timezone, region, and link information with local time
 ln -sf /usr/share/zoneinfo/Canada/Eastern /etc/localtime
@@ -66,28 +120,26 @@ hwclock --systohc
 
 # Generating locale, to set system language
 vim /etc/locale.gen
-# uncomment en_US.UTF-8 and zh_CN.UTF-8
-# generate
+
+# Uncomment en_US.UTF-8 and zh_CN.UTF-8 and generate
 locale-gen
 
 # Set english as default system language
+#   LANG=en_US.UTF-8
 vim /etc/locale.conf
-# LANG=en_US.UTF-8
 
 # Set hostname
+#   <hostname>
 vim /etc/hostname
-# ebarchlinux
 
 # Set static table lookup for hostnames
+#    127.0.0.1		localhost
+#    ::1			localhost
+#    127.0.1.1		<hostname>.localdomain		<hostname>
 vim /etc/hosts
-# 127.0.0.1		localhost
-# ::1			localhost
-# 127.0.1.1		ebarchlinux.localdomain		ebarchlinux
 
 # Install grub boot loader, help to boot arch linux
 pacman -S grub efibootmgr dosfstools mtools	
-
-lsblk
 
 # Install grub into EFI partition named /boot
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
@@ -187,4 +239,16 @@ mv dgpu_force_disable_on_integrated.sh /usr/local/bin/dgpu_force_disable_on_inte
 # Enable and start service
 sudo systemctl enable --now  dgpu_force_disable_on_integrated.service
 sudo systemctl start --now  dgpu_force_disable_on_integrated.service
+
+
+# Setup Virtual box
+# Install virtualbox and choose virtualbox-host-modules-arch
+sudo pacman -S virtualbox
+
+# Load required kernel module
+sudo modprobe vboxdrv
+
+
+# Tmux config
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
