@@ -54,31 +54,35 @@ fdisk -l
 
 
 ###############################################################################
-## Format disks
+## Format and mount disks
 ###############################################################################
 
-mkfs.fat -F32 <path to EFI>
+# Format disks
 mkfs.ext4 <path to Linux space>
+mkfs.fat -F32 <path to EFI>
 mkswap <path to swap space>
 
-
-###############################################################################
-## Disk mounting
-###############################################################################
-
 lsblk
+
+
+# Mount disks
+# Mount Linux space
 mount <path to Linux space> /mnt
+# Mount EFI
 mkdir /mnt/boot
 mount <path to EFI>  /mnt/boot
+# Assign swap space
 swapon <path to swap space>
+
+# lkblk to confirm
 lsblk
 
 
 ###############################################################################
-## Install essential stuff
+## Install essential stuff (linux-kernel firmware microcode some-applications)
 ###############################################################################
 
-pacstrap -i /mnt base base-devel linux linux-firmware amd-ucode git sudo neofetch htop vim tmux bluez bluez-utils networkmanager
+pacstrap -i /mnt base base-devel linux linux-firmware amd-ucode sudo neofetch htop bluez bluez-utils networkmanager vim 
 
 
 ###############################################################################
@@ -99,7 +103,7 @@ sudo pacman -Syu
 
 
 ###############################################################################
-## User setup
+## User setup and configuration
 ###############################################################################
 
 ## Set root password
@@ -138,6 +142,17 @@ vim /etc/hostname
 #    127.0.1.1		<hostname>.localdomain		<hostname>
 vim /etc/hosts
 
+# Enable bluetooth service
+systemctl enable bluetooth
+
+# Enable NetworkManager service
+systemctl enable NetworkManager
+
+
+###############################################################################
+## Grub configuration
+###############################################################################
+
 # Install grub boot loader, help to boot arch linux
 pacman -S grub efibootmgr dosfstools mtools	
 
@@ -147,12 +162,6 @@ grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 # Generate grub configuration file
 grub-mkconfig -o /boot/grub/grub.cfg
 
-# Enable bluetooth service
-systemctl enable bluetooth
-
-# Enable NetworkManager service
-systemctl enable NetworkManager
-
 # Exit from chroot and unmount all partitions
 exit
 umount -lR /mnt
@@ -160,49 +169,106 @@ umount -lR /mnt
 # Shutdown and eject usb
 shutdown now
 
+
+###############################################################################
+## Grub configuration (Welcome to arch linux)
+###############################################################################
+
 # Log back in
 # Connect to network using nmcli (or nmtui)
-nmcli dev status						status of network interfaces
-nmcli radio wifi on						turn on wifi radio
-nmcli dev wifi list						view a list of wifi network
+
+# Status of network interfaces
+nmcli dev status
+
+# Turn on wifi radio
+nmcli radio wifi on
+
+# View a list of wifi network
+nmcli dev wifi list
+
+# Connect
 sudo nmcli dev wifi connect <wifiname> password "password"	connect
+
+
+###############################################################################
+## KDE plasma and SDDM setup
+###############################################################################
 
 # Update pacman database
 sudo pacman -Sy
 
-# Install Desktop environment KDE Plasma and applications
-sudo pacman -S xorg sddm plasma-meta kde-applications dolphin konsole kwrite libreoffice-fresh firefox cargo clang cmake make gcc unzip nvim fzf noto-fonts noto-fonts-emoji ttf-dejavu ttf-font-awesome noto-fonts-cjk nerd-fonts
+# Install Desktop environment KDE Plasma
+# optionally 'kde-applications'
+sudo pacman -S xorg sddm plasma-meta
 
-# Enable and start 
+# Enable and start SDDM
 sudo systemctl enable sddm
 sudo systemctl start sddm
 
-# Fix KDE Discover backend
+# Fix KDE Discover (software center) backend
 sudo pacman -Sy flatpak
 
-# Install NVIDIA driver
-lspci | grep -E "NVIDIA"
-sudo pacman -Sy nvidia
+
+###############################################################################
+## Dual boot setup (win + arch linux)
+###############################################################################
 
 # Add windows Boot entry to GRUB boot menu
 sudo pacman -Sy os-prober
-# Edit grub configuration file, to change default timeout, and uncomment last line that sets GRUB_DISABLE_OS_PROBER to false
+
+# Edit grub configuration file
+#   Change default timeout
+#   Uncomment last line that sets GRUB_DISABLE_OS_PROBER to false
 sudo vim /etc/default/grub
+
 # Update grub configuration
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 
+
+###############################################################################
+##  Yay setup (pacman wrapper and AUR helper)
+###############################################################################
+
+# Update keyring
 sudo pacman -Sy archlinux-keyring
+
+# Clone and build yay
 mkdir ~/Pacakge
 cd ~/Package/
 git clone https://aur.archlinux.org/yay.git
 cd yay/
 makepkg -si
 
+
+###############################################################################
+##  GPU Driver setup
+###############################################################################
+
+# Install GPU drivers
+# Install Nvidia driver and cuda
+sudo pacman -Sy nvidia opencl-nvidia cuda
+
+# Install AMD rocm
+sudo pacman -Sy rocm-hip-sdk rocm-hip-runtime hip-runtime-amd hip-runtime-nvidia
+
+# Install GLFW and VulkanSDK (Not driver, but some library/sdk for graphics)
+sudo pacman -Sy glfw vulkan-devel
+
+
+
+# Useful applications
+sudo pacman -S dolphin konsole libreoffice-fresh firefox clang cmake make gcc zip unzip nvim fzf git tmux openssh
+
+# Fonts and icons
+sudo pacman -S noto-fonts noto-fonts-emoji ttf-dejavu ttf-font-awesome noto-fonts-cjk nerd-fonts
+
+
+
 yay -Sy asusctl supergfxctl rog-control-center
 
 
 # SSH setup
-sudo pacman -Sy openssh
+sudo pacman -Sy 
 
 # Generating new SSH key
 ssh-keygen -t ed25519 -C "hezhangshuo@gmail.com"
@@ -213,20 +279,6 @@ ssh-add ~/.ssh/id_ed25519
 
 # Copy and add to Github
 cat ~/.ssh/id_ed25519.pub
-
-
-# Install GPU drivers
-# Install Nvidia driver and cuda
-sudo pacman -Sy nvidia opencl-nvidia
-sudo pacman -Sy nvidia cuda
-
-# Install AMD rocm
-sudo pacman -Sy rocm-hip-sdk rocm-hip-runtime hip-runtime-amd hip-runtime-nvidia
-
-
-# Install GLFW and VulkanSDK
-sudo pacman -Sy glfw vulkan-devel
-
 
 
 # Configure force disable DGPU on Integrated mode after resume from lid close
@@ -252,3 +304,11 @@ sudo modprobe vboxdrv
 # Tmux config
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
+
+# Snipaste - Screenshot tool
+yay -Sy snipaste
+
+
+# Things required by vimtex
+sudo pacman -Sy texlive-latex texlive-latexextra texlive-plaingeneric texlive-binextra
+sudo pacman -Sy texlive-fontsrecommended texlive-fontsextra
