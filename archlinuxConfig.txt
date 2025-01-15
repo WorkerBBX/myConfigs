@@ -44,9 +44,9 @@ timedatectl set-ntp true
 fdisk -l
 
 # TUI for disk partition
-#	EFI - EFI System
-#	Linux space - Linux filesystem
-#	swap space - Linux swap
+#   EFI - EFI System
+#   Linux space - Linux filesystem
+#   swap space - Linux swap
 cfdisk <disk name>
 
 # To verify change
@@ -86,7 +86,7 @@ pacstrap -i /mnt base base-devel linux linux-firmware amd-ucode sudo neofetch ht
 
 
 ###############################################################################
-## Auto mount configuration file	
+## Auto mount configuration file
 ###############################################################################
 
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -137,9 +137,9 @@ vim /etc/locale.conf
 vim /etc/hostname
 
 # Set static table lookup for hostnames
-#    127.0.0.1		localhost
-#    ::1			localhost
-#    127.0.1.1		<hostname>.localdomain		<hostname>
+#    127.0.0.1      localhost
+#    ::1            localhost
+#    127.0.1.1      <hostname>.localdomain      <hostname>
 vim /etc/hosts
 
 # Enable bluetooth service
@@ -154,7 +154,7 @@ systemctl enable NetworkManager
 ###############################################################################
 
 # Install grub boot loader, help to boot arch linux
-pacman -S grub efibootmgr dosfstools mtools	
+pacman -S grub efibootmgr dosfstools mtools
 
 # Install grub into EFI partition named /boot
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
