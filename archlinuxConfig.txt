@@ -187,7 +187,7 @@ nmcli radio wifi on
 nmcli dev wifi list
 
 # Connect
-sudo nmcli dev wifi connect <wifiname> password "password"	connect
+sudo nmcli dev wifi connect <wifiname> password "password"
 
 
 ###############################################################################
@@ -241,6 +241,29 @@ makepkg -si
 
 
 ###############################################################################
+## Useful applications
+###############################################################################
+
+# Essential Applications
+sudo pacman -S git firefox nvim openssh fzf tmux clang cmake make gcc zip unzip konsole dolphin libreoffice-fresh
+
+# Fonts and icons
+sudo pacman -S noto-fonts noto-fonts-emoji ttf-dejavu ttf-font-awesome noto-fonts-cjk nerd-fonts
+
+# Things required by vimtex
+sudo pacman -Sy texlive-latex texlive-latexextra texlive-plaingeneric texlive-binextra
+
+# Optional fonts used by texlive
+sudo pacman -Sy texlive-fontsrecommended texlive-fontsextra
+
+# ASUS/ROG tools used to optimize asus/rog laptop performance
+yay -Sy asusctl supergfxctl rog-control-center
+
+# Snipaste - Screenshot tool
+yay -Sy snipaste
+
+
+###############################################################################
 ##  GPU Driver setup
 ###############################################################################
 
@@ -255,20 +278,9 @@ sudo pacman -Sy rocm-hip-sdk rocm-hip-runtime hip-runtime-amd hip-runtime-nvidia
 sudo pacman -Sy glfw vulkan-devel
 
 
-
-# Useful applications
-sudo pacman -S dolphin konsole libreoffice-fresh firefox clang cmake make gcc zip unzip nvim fzf git tmux openssh
-
-# Fonts and icons
-sudo pacman -S noto-fonts noto-fonts-emoji ttf-dejavu ttf-font-awesome noto-fonts-cjk nerd-fonts
-
-
-
-yay -Sy asusctl supergfxctl rog-control-center
-
-
-# SSH setup
-sudo pacman -Sy 
+###############################################################################
+## SSH setup
+###############################################################################
 
 # Generating new SSH key
 ssh-keygen -t ed25519 -C "hezhangshuo@gmail.com"
@@ -281,34 +293,40 @@ ssh-add ~/.ssh/id_ed25519
 cat ~/.ssh/id_ed25519.pub
 
 
+###############################################################################
+## Custom services setup
+###############################################################################
+
 # Configure force disable DGPU on Integrated mode after resume from lid close
 # Copy service to systemd location
-mv dgpu_force_disable_on_integrated.service /etc/systemd/system/dgpu_force_disable_on_integrated.service
+cp dgpu_force_disable_on_integrated.service /etc/systemd/system/dgpu_force_disable_on_integrated.service
 
 # Copy script triggered by service to some location
-mv dgpu_force_disable_on_integrated.sh /usr/local/bin/dgpu_force_disable_on_integrated.sh
+cp dgpu_force_disable_on_integrated.sh /usr/local/bin/dgpu_force_disable_on_integrated.sh
 
 # Enable and start service
 sudo systemctl enable --now  dgpu_force_disable_on_integrated.service
 sudo systemctl start --now  dgpu_force_disable_on_integrated.service
 
 
+###############################################################################
+## Virtual machine setup (virtualbox)
+###############################################################################
+
 # Setup Virtual box
-# Install virtualbox and choose virtualbox-host-modules-arch
+#   Choose virtualbox-host-modules-arch
 sudo pacman -S virtualbox
 
 # Load required kernel module
 sudo modprobe vboxdrv
 
 
+###############################################################################
+## Custom dot/conf file
+###############################################################################
+
 # Tmux config
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+cp .tmux.conf ~/.tmux.conf
 
 
-# Snipaste - Screenshot tool
-yay -Sy snipaste
-
-
-# Things required by vimtex
-sudo pacman -Sy texlive-latex texlive-latexextra texlive-plaingeneric texlive-binextra
-sudo pacman -Sy texlive-fontsrecommended texlive-fontsextra
